@@ -1,0 +1,116 @@
+---
+title: "WebScrapping"
+author: "Gabriel Granda"
+date: "25/2/2022"
+output: html_document
+---
+
+
+En primer lugar, es necesario instalar la librería rvest, para ello, ejecutar el comando install.packages("rvest") en la Consola.  
+
+Luego, cargamos la librería y copiamos el url de la página de la cual queremos extraer información: 
+
+```{r}
+library(rvest)
+library(stringr)
+url<- "https://www.1001carros.com/comprar/"
+```
+
+
+La pagina web que deseamos extraer luce de la siguiente forma: 
+
+
+<div>
+<p style = 'text-align:center;'>
+![](C:\Users\GABRIEL\OneDrive\Escritorio\\pagina_web.png){width='900px'}
+</p>
+</div>
+
+
+Ahora, para extraer la información de la página web emplamos la función read_html: 
+
+```{r}
+pagina_web<- read_html(url)
+```
+
+Podemos extraer diversa información de la página web, por ejemplo, a través de las siguientes funciones podemos especificar el tipo de objeto que deseamos extraer: 
+
+- html_nodes(“objeto html”, “etiqueta css”) es usada para seleccionar partes del objeto que contiene todo el código html. El segundo parámetros es la clase CSS que está relacionada con la sección que deseamos extraer. 
+- html_name() obtiene los atributos html
+- html_text() extrae el texto html
+- html_attr() regresa los atributos específicos html
+- html_attrs() obtiene los atributos html
+- html_table() convierte una tabla html en una estructura de datos en R
+
+
+En la mayor parte de los casos, solamente se emplean las funciones html_nodes() , html_text() y finalmente html_table(). 
+
+
+En este ejemplo, vamos a extraer algunos detalles de los AUTOS USADOS que se ofertan en la página de 1001 autos, para ello, es necesario tener conocimientos básicos de HTML, de no tener estos conocimientos no hay problema, pues podemos usar una extensión de Google Chrome, conocida como Selector Gadget: 
+
+
+<div>
+<p style = 'text-align:center;'>
+![](C:\Users\GABRIEL\OneDrive\Escritorio\\select_1.png){width='900px'}
+</p>
+</div>
+
+
+Podemos que la clase css es .titulo-ficha-result.
+
+
+```{r}
+
+marca_modelo <- html_nodes(pagina_web,"h1.titulo-ficha-result") 
+
+marca_modelo<- html_text(marca_modelo)
+
+## Eliminamos los espacios en blanco: 
+
+marca_modelo<- str_replace_all(marca_modelo,"[\\s]+", " ")
+
+## Extraemos la marca: 
+
+marca<- marca_modelo[ seq(1,871,by=2)  ]
+
+## Extraemos el precio: 
+
+precio<- marca_modelo[ seq(2,872,by=2)  ]
+
+```
+
+Con esto, hemos extraído la marca del vehículo y el precio del mismo. 
+
+
+Finalmente, extraemos el año y el kilometraje, nuevamente, empleamos selector Gadget para conocer el css: 
+
+
+<div>
+<p style = 'text-align:center;'>
+![](C:\Users\GABRIEL\OneDrive\Escritorio\\select_2.png){width='900px'}
+</p>
+</div>
+
+
+
+
+```{r}
+
+kilometraje <- html_nodes(pagina_web,".subtitulo-ficha-result") 
+
+kilometraje <- html_text(kilometraje)
+
+kilometraje<- str_replace_all(kilometraje,"[\\s]+", " ")
+
+```
+
+
+
+Finalmente, unimos todo en un tabla: 
+
+
+```{r}
+autos<- data.frame( Marca = marca , Precio = precio, Año_y_Kilometraje = kilometraje )
+
+head(autos,10)
+```
